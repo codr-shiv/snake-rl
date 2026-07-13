@@ -10,20 +10,11 @@ The code is in Python using PyTorch for the deep learning model, Gymnasium for t
 
 The game environment has a few specific rules to help the agent learn:
 
-Wrapping Grid
-If the snake head goes off any of the grid boundaries, it wraps around to the opposite side. There are no wall collisions at the grid borders.
-
-Tail Evasion
-To let the snake follow its tail when it gets long, we update and pop the tail segment before verifying collisions. This prevents the snake from crashing into its own tail when moving into the space it just vacated.
-
-Lidar Sensors
-The snake looks in three directions relative to its head: straight, right, and left. Instead of just seeing what is next to it, it projects raycasts to measure the distance to the nearest danger, giving it depth awareness.
-
-Survival Check
-To prevent the snake from trapping itself in dead-ends, we run a quick breadth-first search from the head on each step. If the reachable open space is smaller than the snake's current length, the agent knows it is entering a trap.
-
-Random Walls and Poisons
-On each reset, a random number of straight wall segments are generated with random lengths, placed in a way that prevents them from forming corners. Five poison cells also spawn, which shrink the snake if consumed.
+- Wrapping Grid: If the snake head goes off any of the grid boundaries, it wraps around to the opposite side. There are no wall collisions at the grid borders.
+- Tail Evasion: To let the snake follow its tail when it gets long, we update and pop the tail segment before verifying collisions. This prevents the snake from crashing into its own tail when moving into the space it just vacated.
+- Lidar Sensors: The snake looks in three directions relative to its head: straight, right, and left. Instead of just seeing what is next to it, it projects raycasts to measure the distance to the nearest danger, giving it depth awareness.
+- Survival Check: To prevent the snake from trapping itself in dead-ends, we run a quick breadth-first search from the head on each step. If the reachable open space is smaller than the snake's current length, the agent knows it is entering a trap.
+- Random Walls and Poisons: On each reset, a random number of straight wall segments are generated with random lengths, placed in a way that prevents them from forming corners. Five poison cells also spawn, which shrink the snake if consumed.
 
 ## Reinforcement Learning Setup
 
@@ -40,14 +31,22 @@ After training for 1000 episodes, the agent achieves a max score of 93, final ru
 ## How to Run
 
 1. Create a virtual environment and activate it:
+```bash
 python3 -m venv venv
 source venv/bin/activate
+```
 
 2. Install the requirements:
+```bash
 pip install -r requirements.txt
+```
 
 3. Train the model:
+```bash
 python train.py
+```
 
 4. Watch the trained model play:
+```bash
 python play.py
+```

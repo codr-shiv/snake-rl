@@ -1,42 +1,29 @@
 # Reinforcement Learning Snake Agent
 
-This project is a simple reinforcement learning agent that learns to play Snake in a wrapping grid with obstacles. The goal of the agent is to eat food and avoid crashing into obstacles or itself.
+This project applies reinforcement learning to train a DQN agent to play the snake game on a 20x20 wrapping grid. The grid features randomly generated food, poison, and straight wall cells. The reward policy gives -200 for eating itself or hitting a wall, +50 for eating food, and -20 for consuming poison.
 
-## Tech Stack
+To improve performance and prevent looping behaviors, the implementation includes:
+- A potential-based reward shaping system which rewards moving closer to the food at each step.
+- A 3-directional Lidar sensor system to give the agent spatial depth awareness.
+- A BFS path check to detect and avoid self-trapping loops.
+- Tail-popping physics to allow the snake to safely follow its own tail.
 
-The code is in Python using PyTorch for the deep learning model, Gymnasium for the reinforcement learning environment wrapper, and Pygame to render the game screen.
+The stack used is PyTorch and Gymnasium for the reinforcement learning components, and Pygame for the visual interface.
 
-## How the Game Works
-
-The game environment has a few specific rules to help the agent learn:
-
-- Wrapping Grid: If the snake head goes off any of the grid boundaries, it wraps around to the opposite side. There are no wall collisions at the grid borders.
-- Tail Evasion: To let the snake follow its tail when it gets long, we update and pop the tail segment before verifying collisions. This prevents the snake from crashing into its own tail when moving into the space it just vacated.
-- Lidar Sensors: The snake looks in three directions relative to its head: straight, right, and left. Instead of just seeing what is next to it, it projects raycasts to measure the distance to the nearest danger, giving it depth awareness.
-- Survival Check: To prevent the snake from trapping itself in dead-ends, we run a quick breadth-first search from the head on each step. If the reachable open space is smaller than the snake's current length, the agent knows it is entering a trap.
-- Random Walls and Poisons: On each reset, a random number of straight wall segments are generated with random lengths, placed in a way that prevents them from forming corners. Five poison cells also spawn, which shrink the snake if consumed.
-
-## Reinforcement Learning Setup
-
-The agent uses a Deep Q-Network with a target network and soft updates. The model takes a 12-value observation vector containing the Lidar readings, the survival check status, the direction of the snake, and the relative direction of the food.
-
-Instead of using hardcoded step rewards, we use potential-based reward shaping. The potential is defined as the negative wrapping distance to the food. The shaping reward added to the step is calculated as:
-(gamma * -new_distance) - (-old_distance)
-where gamma is 0.97. This guides the snake to the food without changing the optimal policy or introducing loops. A step penalty of -0.2 is also applied.
-
-## Results
-
-After training for 1000 episodes, the agent achieves a max score of 93, final running average 35.6, and peak exploitation average 46.9.
+The agent is trained over 1000 episodes using epsilon-greedy exploration. The results are:
+- Max score: 93
+- Final running average: 35.6
+- Peak exploitation average: 46.9
 
 ## How to Run
 
-1. Create a virtual environment and activate it:
+1. Set up a virtual environment and activate it:
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 ```
 
-2. Install the requirements:
+2. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```

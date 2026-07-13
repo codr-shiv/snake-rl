@@ -15,6 +15,8 @@ The agent is trained over 1000 episodes using epsilon-greedy exploration. The re
 - Final running average: 35.6
 - Peak exploitation average: 46.9
 
+![Training Progress](training_progress.png)
+
 ## How to Run
 
 1. Set up a virtual environment and activate it:

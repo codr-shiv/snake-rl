@@ -9,7 +9,6 @@ venv/
 model/
 
 # Generated training outputs
-training_progress.png
 training_history.json
 
 # OS specific files

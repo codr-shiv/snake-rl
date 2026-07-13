@@ -10,33 +10,35 @@ To improve performance and prevent looping behaviors, the implementation include
 
 The stack used is PyTorch and Gymnasium for the reinforcement learning components, and Pygame for the visual interface.
 
-Features
+## Features
 
-Lidar Strategy
+### Lidar Strategy
 The snake looks in three directions relative to its head: straight, right, and left. Instead of just seeing immediate neighbors, it projects raycasts to measure wrapping distance to the nearest obstacle (body, wall, or poison), returning a continuous proximity value (1.0 / distance).
 
-BFS Survival Strategy
+### BFS Survival Strategy
 To prevent the snake from trapping itself in dead-ends, a breadth-first search is run from the head on each step. If the reachable open space is smaller than the snake's current length, the agent knows it is entering a trap and is penalized, encouraging it to select wider paths.
 
-Potential-Based Reward Shaping
+### Potential-Based Reward Shaping
 Instead of hardcoded progress rewards, we use potential-based reward shaping where potential is defined as the negative wrapping distance to the food. The shaping reward added to the step is calculated as (gamma * -new_distance) - (-old_distance) with a gamma of 0.97. This guides the snake to the food without changing the optimal policy or introducing loops. A step penalty of -0.2 is also applied.
 
-Neural Network to predict Q-values
+### Neural Network to Predict Q-values
 - Input: 12 values (3 Lidar proximity readings, 1 BFS path existence check, 4 heading directions, 4 relative food directions)
 - Hidden Layers: 256 ReLU units -> 256 ReLU units
 - Output Layer: 3 units (Q-values for straight, turn right, and turn left actions)
 
-Training Process
+### Training Process
 The agent trains over 1000 episodes using epsilon-greedy exploration. Epsilon decays from 1.0 down to 0.01 at a rate of 0.994 per episode.
 
-The results are:
+## Results
+
+The agent is trained over 1000 episodes using epsilon-greedy exploration. The results are:
 - Max score: 93
 - Final running average: 35.6
 - Peak exploitation average: 46.9
 
 ![Training Progress](training_progress.png)
 
-How to Run
+## How to Run
 
 1. Set up a virtual environment and activate it:
 ```bash

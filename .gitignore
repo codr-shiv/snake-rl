@@ -1,0 +1,16 @@
+# Python compile cache
+__pycache__/
+*.pyc
+
+# Local virtual environment
+venv/
+
+# Trained model checkpoint directory
+model/
+
+# Generated training outputs
+training_progress.png
+training_history.json
+
+# OS specific files
+.DS_Store

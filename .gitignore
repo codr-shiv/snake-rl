@@ -11,5 +11,8 @@ model/
 # Generated training outputs
 training_history.json
 
+# Scratch files
+scratch/
+
 # OS specific files
 .DS_Store

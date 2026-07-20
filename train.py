@@ -29,9 +29,33 @@ def plot(scores, mean_scores):
     plt.savefig('training_progress.png', dpi=150)
     plt.close()
 
+def plot_loss(losses, mean_losses):
+    plt.figure(figsize=(10, 6))
+    plt.title('DQN Snake Training Loss Curve', fontsize=14, fontweight='bold')
+    plt.xlabel('Games / Episodes', fontsize=12)
+    plt.ylabel('MSE Loss', fontsize=12)
+    
+    # Plotting losses and moving average
+    plt.plot(losses, color='#3498db', alpha=0.3, label='Episode Loss')
+    plt.plot(mean_losses, color='#e67e22', linewidth=2, label='Running Average (10 games)')
+    
+    # Highlight final values
+    if len(losses) > 0:
+        plt.text(len(losses) - 1, losses[-1], f"Last: {losses[-1]:.2f}", fontsize=9, fontweight='bold', color='#2c3e50')
+    if len(mean_losses) > 0:
+        plt.text(len(mean_losses) - 1, mean_losses[-1], f"Mean: {mean_losses[-1]:.2f}", fontsize=9, fontweight='bold', color='#d35400')
+
+    plt.legend(loc='upper right')
+    plt.grid(True, linestyle='--', alpha=0.6)
+    plt.tight_layout()
+    plt.savefig('loss_curve.png', dpi=150)
+    plt.close()
+
 def train():
     plot_scores = []
     plot_mean_scores = []
+    plot_losses = []
+    plot_mean_losses = []
     total_score = 0
     record = 0
     
@@ -72,7 +96,7 @@ def train():
         # Game finished
         score = info['score']
         agent.n_games += 1
-        agent.train_long_memory()
+        loss = agent.train_long_memory()
         agent.decay_epsilon()
         
         if score > record:
@@ -86,17 +110,25 @@ def train():
         mean_score = np.mean(plot_scores[-10:])
         plot_mean_scores.append(mean_score)
         
+        # Track loss
+        plot_losses.append(loss)
+        mean_loss = np.mean(plot_losses[-10:])
+        plot_mean_losses.append(mean_loss)
+        
         # Print progress every game
         if episode % 10 == 0 or episode == 1:
-            print(f"Game: {episode:3d} | Score: {score:3d} | Record: {record:3d} | Epsilon: {agent.epsilon:.4f} | Running Avg: {mean_score:.2f}")
+            print(f"Game: {episode:3d} | Score: {score:3d} | Record: {record:3d} | Epsilon: {agent.epsilon:.4f} | Loss: {loss:.4f} | Running Avg: {mean_score:.2f}")
             plot(plot_scores, plot_mean_scores)
+            plot_loss(plot_losses, plot_mean_losses)
             
     env.close()
     
     # Save training history data to json
     history = {
         "scores": plot_scores,
-        "mean_scores": plot_mean_scores
+        "mean_scores": plot_mean_scores,
+        "losses": plot_losses,
+        "mean_losses": plot_mean_losses
     }
     with open("training_history.json", "w") as f:
         json.dump(history, f)
@@ -107,6 +139,7 @@ def train():
     print(f"Final running average score: {plot_mean_scores[-1]:.2f}")
     print("Model saved to 'model/model.pth'")
     print("Progress plot saved to 'training_progress.png'")
+    print("Loss curve saved to 'loss_curve.png'")
     print("History saved to 'training_history.json'")
 
 if __name__ == '__main__':

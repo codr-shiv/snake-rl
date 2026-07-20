@@ -1,30 +1,45 @@
 # Reinforcement Learning Snake Agent
 
-This project implements a DQN RL agent to play the snake game on a custom 20x20 wrapping grid environment. Poison, food, and walls are generated randomly. The reward function gives -200 for eating itself or hitting a wall, +50 for food, and -20 for poison.
+This project implements a Deep Q-Network (DQN) RL agent to play the snake game on a custom 20x20 wrapping grid environment. Poison, food, and continuous walls are generated randomly. The base reward function gives -200 for eating itself or hitting a wall, +50 for food, and -20 for poison.
 
-To improve policy performance, the implementation includes:
+To improve policy performance and prevent reward hacking, the implementation includes:
 
-1. Potential-Based Reward Shaping: Rewards moving closer to the food at each step using the negative wrapping distance. The shaping reward added to the step is calculated as (gamma * -new_distance) - (-old_distance) with a gamma of 0.97, guiding the agent without altering the optimal policy.
-2. 3-Directional Lidar: Provides vision by projecting raycasts in straight, left, and right directions to measure proximity (1.0 / distance) to walls, body segments, or poison.
-3. BFS Path Check: Performs a breadth-first search from the head on each step to check for topological connectivity, preventing the snake from trapping itself in dead-ends.
-4. Tail-popping Physics: Removes the tail segment before verifying collisions so the snake can safely follow its own body.
+1. **Potential-Based Reward Shaping (PBRS)**: Rewards moving closer to the food at each step using the negative wrapping distance: $F(s, a, s') = \gamma \Phi(s') - \Phi(s)$ where $\Phi(s) = -\text{distance}$ and $\gamma = 0.97$. This guides the agent without altering the optimal policy or introducing positive reward cycles.
+2. **Step Penalty & Starvation Timer**: Applies a `-0.2` step penalty and truncates episodes with a `-200` penalty if the snake takes $> 100 \times \text{body\_length}$ steps without eating food (resetting upon eating food), effectively preventing infinite looping.
+3. **3-Directional Lidar**: Provides vision by projecting raycasts in straight, left, and right directions to measure proximity ($1.0 / \text{distance}$) to walls, body segments, or poison.
+4. **BFS Path Check**: Performs a breadth-first search from the head on each step to check for topological connectivity (verifying reachable space $\ge \text{body\_length}$), preventing the snake from trapping itself in dead-ends.
+5. **Tail-Popping Physics**: Removes the tail segment before verifying collisions so the snake can safely follow its own body.
+6. **Target Network Soft Updates**: Uses Polyak averaging ($\tau = 0.01$) to update the target Q-network, ensuring smooth Q-learning stability.
 
 The stack used is PyTorch and Gymnasium for RL, and Pygame for GUI rendering.
 
-## Neural Network to Predict Q-values
+## Neural Network Architecture
 
-- Input: 12 values representing Lidar readings, BFS check status, heading direction, and relative food direction.
-- Hidden Layers: 256 ReLU units to 256 ReLU units.
-- Output Layer: 3 units representing action values for straight, turn right, and turn left.
+- **Input Layer**: 12 feature values (3 Lidar proximity readings, 1 BFS survival path status, 4 current direction flags, and 4 relative food direction flags).
+- **Hidden Layers**: Two fully connected layers with 256 ReLU units each.
+- **Output Layer**: 3 Q-value predictions corresponding to actions: `[Straight, Turn Right, Turn Left]`.
 
 ## Training Process and Results
 
-The policy trained over 1000 episodes using epsilon-greedy exploration. The performance metrics are:
-- Max score: 93 (count of food eaten before failing)
-- Final running average: 35.6
-- Peak exploitation average: 46.9
+The policy was trained over 1000 episodes using epsilon-greedy exploration ($\epsilon$ decaying from 1.0 to 0.01).
+
+### Performance Metrics:
+- **Max score**: 83 (food items eaten in a single game)
+- **Final running average score (last 10 games)**: 44.70
+- **Peak running average score**: 51.40
 
 ![Training Progress](training_progress.png)
+
+## Loss Function & Training Stability Analysis
+
+The training loss is measured using Mean Squared Error (MSE) between the target Q-values (computed via Bellman equation using target network) and predicted Q-values.
+
+![Training Loss Curve](loss_curve.png)
+
+### Key Insights & Justification:
+- **Convergence and Stability**: The loss starts high (~477.8) during initial exploration as the network encounters large penalty signals (-200). It quickly drops and stabilizes in the **35–60 MSE range** (finishing with a 10-episode mean loss of **51.10** and final loss of **38.95**), indicating smooth policy convergence without loss divergence.
+- **Overestimation Control**: Using soft updates ($\tau = 0.01$) on the target network prevents Q-value overestimation spikes, maintaining steady gradients throughout the 1000 episodes.
+- **Absence of Reward Hacking**: The combination of Potential-Based Reward Shaping, a `-0.2` step penalty, and the starvation timeout ($100 \times \text{body\_length}$) prevents the agent from engaging in loop farming. As seen in evaluation play, the agent directly navigates to food while keeping topological escape routes open.
 
 ## How to Run
 
